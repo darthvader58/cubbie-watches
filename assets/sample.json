@@ -1,0 +1,29 @@
+{
+  "videos": [{
+    "id": "DemoVideo01", "title": "Example lesson: understanding simple flows", "channel": "Synthetic teaching example", "duration": 420,
+    "segments": [
+      {"start": 0, "end": 40, "text": "In an autonomous first-order equation, the current state determines the direction of motion."},
+      {"start": 40, "end": 90, "text": "An equilibrium is a state where the derivative is zero. Nearby arrows describe local stability."},
+      {"start": 90, "end": 140, "text": "On the real line, a smooth autonomous flow cannot form a nonconstant periodic orbit."},
+      {"start": 140, "end": 180, "text": "At each state the vector field specifies one direction; a trajectory cannot return by reversing through the same states."},
+      {"start": 180, "end": 230, "text": "A harmonic oscillator needs position and velocity to specify its state."},
+      {"start": 230, "end": 280, "text": "Its phase space therefore has two dimensions even when its physical position lies on a line."},
+      {"start": 280, "end": 320, "text": "The real line and a circle have different topology. A direction field on a circle can support periodic motion."},
+      {"start": 320, "end": 420, "text": "Check the state variables, the equation assumptions, and the domain before using a result about one-dimensional flows."}
+    ]
+  }],
+  "plan": {
+    "schema_version": 1, "sample": true, "title": "See how the ideas connect", "mode": "exam",
+    "course": {"id": "demo-dynamics", "name": "Dynamics: an illustrative course", "term": "Synthetic example"},
+    "exam_scope_confirmed": true, "budget_minutes": 20, "playback_speed": 1, "practice_minutes": 5,
+    "sources": [{"id": "guide", "kind": "provided", "title": "Example review guide (fictional)", "locator": "Learning objectives 1-4", "checked_at": "2026-10-24T00:00:00Z"}],
+    "requirements": [
+      {"id": "state", "title": "Start with the state", "objective": "Identify the state variables and autonomous equation.", "explanation": "A state must contain enough information to determine the system's evolution. Establish that before counting dimensions.", "basis": "explicit", "source_ids": ["guide"], "status": "matched", "clips": [{"video_id": "DemoVideo01", "start": 0, "end": 90, "evidence_segments": [0, 1]}], "practice": "What information is needed to determine the next motion of an oscillator?"},
+      {"id": "line", "title": "Reason about flows on a line", "objective": "Explain why a smooth autonomous flow on the real line has no nonconstant periodic orbit.", "explanation": "The vector field fixes the direction at each state. A returning orbit would require incompatible directions through the same states.", "basis": "explicit", "source_ids": ["guide"], "status": "matched", "clips": [{"video_id": "DemoVideo01", "start": 90, "end": 180, "evidence_segments": [2, 3]}], "practice": "Why does knowing only the physical direction of motion not establish the dimension of phase space?"},
+      {"id": "oscillator", "title": "Resolve the oscillator example", "objective": "Distinguish physical position from phase-space dimension and analyze an oscillator's phase portrait.", "explanation": "Position and velocity are separate state variables, so an oscillator's phase space is two-dimensional. The lesson explains this distinction but does not teach a complete phase-portrait construction.", "basis": "explicit", "source_ids": ["guide"], "status": "partial", "gap": "A worked phase-portrait construction is still needed.", "clips": [{"video_id": "DemoVideo01", "start": 180, "end": 280, "evidence_segments": [4, 5]}], "practice": "Name both state variables and explain why neither can be omitted."},
+      {"id": "bifurcation", "title": "Recognize a bifurcation", "objective": "Identify how equilibria change as a parameter varies.", "explanation": "This requirement needs a separate explanation and worked example. The inspected lesson does not establish it.", "basis": "explicit", "source_ids": ["guide"], "status": "missing", "gap": "No inspected clip covers parameter-dependent changes in equilibria.", "clips": []}
+    ],
+    "edges": [{"from": "state", "to": "line", "label": "Establish assumptions"}, {"from": "state", "to": "oscillator", "label": "Count the state variables"}, {"from": "line", "to": "bifurcation", "label": "Extend equilibrium reasoning"}],
+    "video_summaries": [{"video_id": "DemoVideo01", "summary": "This authored example connects state variables, equilibria, nonperiodic flows on a line, and the oscillator's two-dimensional phase space. It also explains why the domain matters.", "key_points": ["State dimension depends on the information needed to evolve the system.", "Results about the real line do not automatically apply to a circle.", "The oscillator is not a counterexample to the one-dimensional flow result."], "reviewed_segments": [0,1,2,3,4,5,6,7]}]
+  }
+}
