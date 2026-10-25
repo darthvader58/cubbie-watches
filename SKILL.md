@@ -23,7 +23,7 @@ Canvas is the course authority, so get it working before searching YouTube. Use 
 
 **If the sign-in never gets past a human-verification check** (a "Verify you are human" box that reloads or spins after it is ticked), stop after two attempts. That check is the school's protection against cloud browsers; never try to get around it. Offer Cubbie's Chrome extension instead: it reads Canvas through the student's own signed-in Chrome on their computer, so the check does not apply. Otherwise use supplied material.
 
-Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review".
+Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review". A synced connection may list a file without its contents. If you cannot read a file you need, name it and give its Canvas link, then ask the student to send that one file in the chat; Cubbie reads PDFs sent to it. Label it as a Canvas file the student supplied.
 
 Install the pinned dependencies once in the student's private environment:
 
@@ -188,7 +188,17 @@ Mode-specific decisions:
 
 ## 6. Deliver, check and continue
 
-Send a short text stating the course/goal, the first useful action and any important coverage gap. Deliver the full explanatory map and source-to-requirement table as a readable PDF. An HTML companion with clickable source links is optional when supported. Inspect the generated artifact for readable labels and working link targets using the available document tools. If artifact generation is unavailable, provide a compact text map and source links without claiming a file was sent. Do not assume a server started in the sandbox is publicly reachable.
+Put the videos in the chat itself. A file may not arrive, so the student must never need it to find the videos. Every delivery message includes:
+
+- The course/goal, the first useful action and any important coverage gap.
+- The first three to five route steps, each on its own line: a timestamped YouTube link (`https://www.youtube.com/watch?v=<ID>&t=<seconds>s`), the video title and its status (Matched, Partial or Unverified).
+- The full playlists or courses you recommend, one link per line, with entry counts.
+
+If nothing could be verified, still send the best candidate video and playlist links, clearly marked Unverified. Never say links are "in the PDF" without also sending them in the chat.
+
+Then deliver the full explanatory map and source-to-requirement table as a readable PDF. An HTML companion with clickable source links is optional. Inspect the generated file for readable labels and working links before sending it.
+
+Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". Say plainly that the file did not come through and send the map as text: each concept, its course source and its links. Offer one other route, such as emailing it to the student's own connected address, and report only what the email or upload tool actually confirms. If no route works, say so; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
 
 Validate references, transcript evidence, segment bounds and viewing-time estimates, then render the PDF, standalone HTML and SVG map:
 
@@ -207,7 +217,7 @@ Offer a follow-up only if useful. Create it after the student chooses the time a
 
 ## Replies and failures
 
-Keep ordinary replies short, plain text and focused on one action. Links belong on their own lines. Put tables, long routes and detailed maps in the document; Markdown tables and code fences do not render as intended in iMessage.
+Keep ordinary replies short, plain text and focused on one action. Links belong on their own lines, and video recommendations always carry their YouTube links. Put tables, long routes and detailed maps in the document; Markdown tables and code fences do not render as intended in iMessage.
 
 Use one actionable failure message:
 
