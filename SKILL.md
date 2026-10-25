@@ -200,7 +200,7 @@ Then deliver the full explanatory map and source-to-requirement table as a reada
 
 Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". Say plainly that the file did not come through and send the map as text: each concept, its course source and its links. Offer one other route, such as emailing it to the student's own connected address, and report only what the email or upload tool actually confirms. If no route works, say so; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
 
-Validate references, transcript evidence, segment bounds and viewing-time estimates, then render the PDF, standalone HTML and SVG map:
+Always make the map with this skill's own `validate` and `build` commands; never write a PDF or map another way. The commands are what check the evidence, so a hand-made map skips every safeguard. If `validate` fails, fix the plan it names, or mark the affected requirement Unverified or No match found. Even a map where everything is Unverified goes through `build`. Validate references, transcript evidence, segment bounds and viewing-time estimates, then render the PDF, standalone HTML and SVG map:
 
 ```bash
 ~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py validate --plan "<private-course-dir>/plan.json" --workspace "<private-course-dir>/workspace"
