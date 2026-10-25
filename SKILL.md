@@ -19,6 +19,10 @@ Canvas is the course authority, so get it working before searching YouTube. Use 
 2. **Canvas in Cubbie's browser.** If the connection cannot be completed (for example, it needs a browser extension the student cannot install), open the school's Canvas sign-in page in Cubbie's browser, such as `https://canvas.asu.edu`. Hand the browser to the student to sign in, including single sign-on and two-factor approval. Never ask for a password or code in the chat. The login stays saved for later conversations. Then read only, in that browser: course pages, modules, files, announcements and the syllabus. Canvas also shows read-only JSON at addresses such as `/api/v1/courses?enrollment_state=active`, `/api/v1/courses/<id>/modules?include[]=items`, `/api/v1/courses/<id>/assignments`, `/api/v1/courses/<id>/files`, `/api/v1/courses/<id>/pages`, `/api/v1/announcements?context_codes[]=course_<id>` and `/api/v1/courses/<id>?include[]=syllabus_body`. Open them in the signed-in browser to list course structure quickly. Only open pages; never submit, post or change anything.
 3. **Supplied material.** Only if both fail, ask for the syllabus, slides, review guide or project brief as files or photos. Label them as supplied, not a live Canvas read.
 
+**Confirm whose Canvas it is before reading anything.** Whichever route is used, check the signed-in Canvas user first: open `/api/v1/users/self` or the Canvas account profile, and compare the name and login with the student's (from memory or their Cubbie profile). If it shows anyone else, such as a test account, a mascot name or another student, stop. Read nothing from that session; it is not this student's course. Tell the student which account is signed in, sign it out of Cubbie's browser, and have them sign in as themselves. If the browser keeps returning to the wrong account, say so and use another route.
+
+**If the sign-in never gets past a human-verification check** (a "Verify you are human" box that reloads or spins after it is ticked), stop after two attempts. That check is the school's protection against cloud browsers; never try to get around it. Offer Cubbie's Chrome extension instead: it reads Canvas through the student's own signed-in Chrome on their computer, so the check does not apply. Otherwise use supplied material.
+
 Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review".
 
 Install the pinned dependencies once in the student's private environment:
@@ -208,6 +212,8 @@ Keep ordinary replies short, plain text and focused on one action. Links belong 
 Use one actionable failure message:
 
 - Canvas unavailable: start Cubbie's Canvas connection; if that cannot finish, offer to open Canvas in Cubbie's browser for the student to sign in. Ask for course files only as the last option.
+- Wrong Canvas account signed in: name the account shown, read nothing from it, and ask the student to sign in as themselves.
+- Sign-in stuck on human verification: stop after two tries and offer the Cubbie Chrome extension on the student's own computer.
 - Course ambiguous: ask which course or section.
 - Exam scope absent: ask for the review guide or instructor's topic list; label interim suggestions provisional.
 - Locked or missing file: identify the unavailable source and request an accessible copy or substitute.
