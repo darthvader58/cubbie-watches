@@ -279,8 +279,10 @@ def frames(args):
     for pick in picks:
         pick["time"] = timestamp(pick["at"])
         pick["url"] = video_url(vid, pick["at"])
+        # Some agent browsers reject addresses containing "?" or "#"; this one has neither, so seek in the player.
+        pick["browser_url"] = f"https://youtu.be/{vid}"
     emit({"video_id": vid, "frames": picks,
-          "next": "Open each url in Cubbie's browser, pause on the frame, look at it, then record it with the frame command."})
+          "next": "Open browser_url in Cubbie's browser, seek the player to each time, pause, look at the frame, then record it with the frame command."})
     return 0
 
 

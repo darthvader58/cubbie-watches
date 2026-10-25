@@ -98,7 +98,7 @@ Retrieve captions for every video in the selected playlist or search set when th
 
 YouTube usually blocks caption requests from Cubbie's servers, so expect `needs_browser`. That is normal, not a dead end: read the captions in Cubbie's browser, which is how a student would see them.
 
-1. Open the video's watch page (`https://www.youtube.com/watch?v=<ID>`) in Cubbie's browser. Dismiss any cookie or sign-in prompt; no YouTube account is needed.
+1. Open the video in Cubbie's browser at `https://youtu.be/<ID>`; the browser may refuse a `watch?v=` address. Dismiss any cookie or sign-in prompt; no YouTube account is needed.
 2. Expand the description ("...more") and choose "Show transcript". If the panel lists languages, choose the course's language.
 3. Copy the panel's full text, scrolling until the last timestamp is included. Save it unchanged to a private file such as `<private-course-dir>/captions/<ID>.txt`.
 4. Import it with `--source browser_captions`, passing the duration shown on the page. The importer reads the panel's `0:00` lines directly. Each segment ends where the next begins, and the last end stays unknown.
@@ -135,10 +135,11 @@ Captions hold what the instructor says; much of the teaching is what they show: 
 
 It returns up to six moments with watch links: where the speaker says "as you can see", "draw", "this graph" and similar, plus evenly spaced fill. Add moments of your own where the captions describe something visual. For each moment, in Cubbie's browser:
 
-1. Open its link (`&t=<seconds>`). Skip or wait out any ad, then choose the highest quality offered.
-2. Pause at the moment, move the pointer off the video so the controls hide, and take a screenshot of just the video player.
-3. Look at the screenshot. Note the slide or board title, every equation and symbol exactly as written, axes and labels, the kind of diagram, and which step of a worked example is shown. If the picture is mid-transition, step a few seconds forward and look again.
-4. Record it, with the screenshot saved privately:
+1. Open the video. Cubbie's browser may refuse addresses that contain `?` or `#`, so use the moment's `browser_url` (`https://youtu.be/<ID>`, or `https://www.youtube.com/embed/<ID>` if that fails), not the `watch?v=` link. Skip or wait out any ad, then choose the highest quality offered.
+2. Seek to the moment in the player: drag or click the progress bar near the time, then fine-tune while watching the time display (arrow keys move 5 seconds; `,` and `.` step one frame while paused).
+3. Pause at the moment, move the pointer off the video so the controls hide, and take a screenshot of just the video player.
+4. Look at the screenshot. Note the slide or board title, every equation and symbol exactly as written, axes and labels, the kind of diagram, and which step of a worked example is shown. If the picture is mid-transition, step a few seconds forward and look again.
+5. Record it, with the screenshot saved privately:
 
 ```bash
 ~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py frame --video "<YouTube ID>" --workspace "<private-course-dir>/workspace" --at 193 --legibility clear --seen "Board: 'Impossibility of oscillations (2.6)'; two x-t sketches of oscillation marked NO" --notation "x' = f(x)" --image "<screenshot path>"
