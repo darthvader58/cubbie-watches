@@ -23,7 +23,7 @@ Canvas is the course authority, so get it working before searching YouTube. Use 
 
 **If the sign-in never gets past a human-verification check** (a "Verify you are human" box that reloads or spins after it is ticked), stop after two attempts. That check is the school's protection against cloud browsers; never try to get around it. Offer Cubbie's Chrome extension instead: it reads Canvas through the student's own signed-in Chrome on their computer, so the check does not apply. Otherwise use supplied material.
 
-Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review". A synced connection may list a file without its contents. If you cannot read a file you need, name it and give its Canvas link, then ask the student to send that one file in the chat; Cubbie reads PDFs sent to it. Label it as a Canvas file the student supplied.
+Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review". A synced connection may list a file without its contents. If you cannot read a file you need, name it and give its Canvas link, then ask the student to send that one file in the chat; Cubbie reads PDFs sent to it. Ask before building the map, not after. Do not report the scope as "unavailable" without making this request. Label it as a Canvas file the student supplied.
 
 Install the pinned dependencies once in the student's private environment:
 
@@ -179,13 +179,13 @@ Label connections with their meaning: “needed before,” “explains why,” �
 
 Choose a coherent viewing route that preserves prerequisites and enough surrounding context. Validate selected times against the video duration when available. End times must follow start times and remain within the duration. If an end time is malformed or unknown, use a verified start-time link and label the segment length unknown. Never invent timestamps.
 
-Merge overlapping segments before estimating viewing time; state any playback-speed assumption and reserve time separately for practice. If the goal exceeds the budget, offer a smaller useful scope and name the omitted objectives. Keep missing requirements on the map rather than dropping them to make the route appear complete.
+Merge overlapping segments before estimating viewing time; state any playback-speed assumption and reserve time separately for practice. If the goal exceeds the budget, offer a smaller useful scope and list the omitted objectives by name in the reply. Keep missing requirements on the map rather than dropping them to make the route appear complete.
 
 Mode-specific decisions:
 
 - Exam Rescue: prioritize explicit exam objectives, prerequisite needs and the student's demonstrated difficulties. Use instructor-stated weighting only when available. Show unresolved exam scope and practice gaps. Generate representative ungraded questions rather than completing an active assessment.
 - Lecture Clarity: center the confusing idea and its immediate relationships. Explain the bridge between the course's presentation and the video's presentation. Use a new small example to test whether the explanation helped.
-- Skill Builder: connect each milestone to a course outcome, lab instruction or project criterion. Recommend suitable courses/playlists with reasons, then give the next selected lesson and a hands-on task that produces observable evidence. Keep a larger learning path available without flooding the text thread. Guide the student toward their own coursework rather than delivering a finished graded submission.
+- Skill Builder: connect each milestone to a course outcome, lab instruction or project criterion. Recommend suitable courses/playlists with reasons, then give the next selected lesson and a hands-on task that produces observable evidence. Keep a larger learning path available without flooding the text thread. Guide the student toward their own coursework. Never write, complete or prepare a graded project, assignment or submission for them, even a draft for them to submit. Offer the learning route, a practice task on the same skill and feedback on their own work instead.
 
 ## 6. Deliver, check and continue
 
@@ -199,7 +199,7 @@ If nothing could be verified, still send the best candidate video and playlist l
 
 Then deliver the full explanatory map and source-to-requirement table as a readable PDF. An HTML companion with clickable source links is optional. Inspect the generated file for readable labels and working links before sending it.
 
-Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". Say plainly that the file did not come through and send the map as text: each concept, its course source and its links. Offer one other route, such as emailing it to the student's own connected address, and report only what the email or upload tool actually confirms. If no route works, say so; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
+Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". Say plainly that the file did not come through and send the map as text: each concept, its course source and its links. Then offer one other route right away, without waiting to be asked, such as emailing it to the student's own connected address. Report only what the email or upload tool actually confirms. After building the PDF, always attempt delivery; a built file that was never sent is not delivered. If no route works, say so; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
 
 Always make the map with this skill's own `validate` and `build` commands; never write a PDF or map another way. The commands are what check the evidence, so a hand-made map skips every safeguard. If `validate` fails, fix the plan it names, or mark the affected requirement Unverified or No match found. Even a map where everything is Unverified goes through `build`. Validate references, transcript evidence, segment bounds and viewing-time estimates, then render the PDF, standalone HTML and SVG map:
 
