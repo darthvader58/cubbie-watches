@@ -1,6 +1,7 @@
 """Offline HTML, SVG and PDF learning-map rendering. No remote assets or scripts."""
 from __future__ import annotations
 
+import base64
 import hashlib
 import html
 import math
@@ -94,6 +95,22 @@ def names_for(plan):
     return {r["id"]: r["title"] for r in plan["requirements"]}
 
 
+def frames_for(clip, checked):
+    observed = checked.get("frames", {}).get(clip["video_id"], {})
+    return [observed[at] for at in clip.get("frames", []) if at in observed]
+
+
+def frame_text(row):
+    notation = "; ".join(row.get("notation", []))
+    return f"On screen at {timestamp(row['at'])}: {row['seen']}" + (f" [{notation}]" if notation else "") + \
+        ("" if row.get("legibility") == "clear" else f" ({row.get('legibility')} legibility)")
+
+
+def frame_image(row):
+    image = row.get("image")
+    return Path(image) if image and Path(image).is_file() else None
+
+
 def html_report(plan, checked, diagram):
     videos = checked["videos"]
     sources = {s["id"]: s for s in plan["sources"]}
@@ -115,7 +132,16 @@ def html_report(plan, checked, diagram):
         for clip in req.get("clips", []):
             record = videos[clip["video_id"]]
             label = esc(clip_label(clip, record))
-            clip_links.append(f'<li><a href="{video_url(clip["video_id"], clip["start"])}" target="_blank" rel="noopener noreferrer">{label}</a><small>{esc(record.get("channel", ""))}</small></li>' if not sample else f'<li>{label}</li>')
+            seen = []
+            for row in frames_for(clip, checked):
+                image = frame_image(row)
+                picture = ""
+                if image:
+                    kind = "jpeg" if image.suffix.lower() in (".jpg", ".jpeg") else "png"
+                    picture = f'<img alt="{esc(frame_text(row))}" src="data:image/{kind};base64,{base64.b64encode(image.read_bytes()).decode()}">'
+                seen.append(f'<figure class="frame">{picture}<figcaption><a href="{video_url(clip["video_id"], row["at"])}" target="_blank" rel="noopener noreferrer">{esc(frame_text(row))}</a></figcaption></figure>')
+            body = f'<a href="{video_url(clip["video_id"], clip["start"])}" target="_blank" rel="noopener noreferrer">{label}</a>' if not sample else label
+            clip_links.append(f'<li>{body}<small>{esc(record.get("channel", ""))}</small>{"".join(seen)}</li>')
         candidates = "".join(f'<li><a href="{esc(url)}" target="_blank" rel="noopener noreferrer">Unverified candidate</a></li>' for url in req.get("candidate_urls", []))
         gap = f'<div class="gap"><b>Still needed</b><p>{esc(req["gap"])}</p></div>' if req.get("gap") else ""
         practice = f'<div class="practice"><b>Try it</b><p>{esc(req["practice"])}</p></div>' if req.get("practice") else ""
@@ -139,7 +165,7 @@ def html_report(plan, checked, diagram):
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(plan['title'])} · Cubbie Watches</title>
 <style>
-:root{{--ink:#28242d;--muted:#6d6874;--line:#e5e1e8;--purple:#6b4bba}}*{{box-sizing:border-box}}body{{margin:0;background:#faf9f6;color:var(--ink);font:16px/1.65 system-ui,-apple-system,sans-serif}}main{{max-width:1120px;margin:auto;padding:32px 32px 64px}}header{{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:20px}}.brand{{font-weight:750;letter-spacing:-.5px}}.brand span{{color:var(--purple)}}button{{font:inherit;border:1px solid var(--line);border-radius:100px;background:white;padding:7px 16px;cursor:pointer}}button[aria-pressed=true]{{background:var(--ink);color:white}}.eyebrow{{font-size:11px;letter-spacing:2px;color:var(--purple);font-weight:750;margin-top:42px}}h1{{font-size:clamp(30px,5vw,52px);line-height:1.12;letter-spacing:-1.5px;margin:14px 0 18px;max-width:850px}}h2{{font-size:24px;letter-spacing:-.5px;margin:36px 0 10px}}h3{{font-size:22px;line-height:1.25;margin:15px 0}}.meta,small{{color:var(--muted)}}.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0}}.stat{{background:white;border:1px solid var(--line);border-radius:14px;padding:18px}}.stat strong{{display:block;font-size:30px;line-height:1.2}}.stat span{{font-size:13px;color:var(--muted)}}.notice{{padding:16px 22px;background:#fff1dc;border-radius:12px;margin:20px 0}}.notice ul{{margin:0;padding-left:18px}}.map{{overflow:auto;border:1px solid var(--line);border-radius:18px;padding:12px}}.map svg{{width:100%;min-width:640px;display:block}}.filters{{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}}.grid{{display:grid;grid-template-columns:1fr 1fr;gap:18px}}.card{{background:white;border:1px solid var(--line);border-radius:16px;padding:25px;scroll-margin-top:24px}}.card[hidden]{{display:none}}.badge{{font-size:11px;letter-spacing:.4px;text-transform:uppercase;font-weight:750;padding:5px 9px;border-radius:6px}}.matched{{background:#e5f3ed;color:#226748}}.partial{{background:#fff1dc;color:#956018}}.unverified{{background:#eeebf8;color:#66518b}}.missing{{background:#f8e8e6;color:#9d4940}}.objective{{font-weight:650}}.sources{{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:13px}}.sources b,.gap b,.practice b{{font-size:11px;letter-spacing:.7px;text-transform:uppercase}}a{{color:#6845b2;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}}.clips{{padding-left:18px;font-size:14px}}.clips small{{display:block}}.gap,.practice{{padding:14px 16px;border-radius:10px;margin-top:16px;background:#f6f3fa}}.gap{{background:#fff5e6}}.gap p,.practice p{{margin:5px 0 0}}.summary{{background:white;border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:12px 0}}summary{{font-weight:700;cursor:pointer}}footer{{margin-top:40px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--muted)}}@media(max-width:700px){{main{{padding:20px 16px}}.grid{{grid-template-columns:1fr}}.stats{{gap:7px}}.stat{{padding:12px 8px}}.stat span{{font-size:11px}}.map{{padding:0}}}}@media print{{button,.filters{{display:none}}body{{background:white}}main{{max-width:none;padding:0}}.card,.summary{{break-inside:avoid}}.grid{{display:block}}.card{{margin:12px 0}}.map svg{{min-width:0}}}}
+:root{{--ink:#28242d;--muted:#6d6874;--line:#e5e1e8;--purple:#6b4bba}}*{{box-sizing:border-box}}body{{margin:0;background:#faf9f6;color:var(--ink);font:16px/1.65 system-ui,-apple-system,sans-serif}}main{{max-width:1120px;margin:auto;padding:32px 32px 64px}}header{{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:20px}}.brand{{font-weight:750;letter-spacing:-.5px}}.brand span{{color:var(--purple)}}button{{font:inherit;border:1px solid var(--line);border-radius:100px;background:white;padding:7px 16px;cursor:pointer}}button[aria-pressed=true]{{background:var(--ink);color:white}}.eyebrow{{font-size:11px;letter-spacing:2px;color:var(--purple);font-weight:750;margin-top:42px}}h1{{font-size:clamp(30px,5vw,52px);line-height:1.12;letter-spacing:-1.5px;margin:14px 0 18px;max-width:850px}}h2{{font-size:24px;letter-spacing:-.5px;margin:36px 0 10px}}h3{{font-size:22px;line-height:1.25;margin:15px 0}}.meta,small{{color:var(--muted)}}.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0}}.stat{{background:white;border:1px solid var(--line);border-radius:14px;padding:18px}}.stat strong{{display:block;font-size:30px;line-height:1.2}}.stat span{{font-size:13px;color:var(--muted)}}.notice{{padding:16px 22px;background:#fff1dc;border-radius:12px;margin:20px 0}}.notice ul{{margin:0;padding-left:18px}}.map{{overflow:auto;border:1px solid var(--line);border-radius:18px;padding:12px}}.map svg{{width:100%;min-width:640px;display:block}}.filters{{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}}.grid{{display:grid;grid-template-columns:1fr 1fr;gap:18px}}.card{{background:white;border:1px solid var(--line);border-radius:16px;padding:25px;scroll-margin-top:24px}}.card[hidden]{{display:none}}.badge{{font-size:11px;letter-spacing:.4px;text-transform:uppercase;font-weight:750;padding:5px 9px;border-radius:6px}}.matched{{background:#e5f3ed;color:#226748}}.partial{{background:#fff1dc;color:#956018}}.unverified{{background:#eeebf8;color:#66518b}}.missing{{background:#f8e8e6;color:#9d4940}}.objective{{font-weight:650}}.sources{{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:13px}}.sources b,.gap b,.practice b{{font-size:11px;letter-spacing:.7px;text-transform:uppercase}}a{{color:#6845b2;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}}.clips{{padding-left:18px;font-size:14px}}.clips small{{display:block}}.frame{{margin:10px 0 4px;font-size:13px}}.frame img{{width:100%;max-width:420px;border-radius:8px;border:1px solid var(--line);display:block;margin-bottom:4px}}.gap,.practice{{padding:14px 16px;border-radius:10px;margin-top:16px;background:#f6f3fa}}.gap{{background:#fff5e6}}.gap p,.practice p{{margin:5px 0 0}}.summary{{background:white;border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:12px 0}}summary{{font-weight:700;cursor:pointer}}footer{{margin-top:40px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--muted)}}@media(max-width:700px){{main{{padding:20px 16px}}.grid{{grid-template-columns:1fr}}.stats{{gap:7px}}.stat{{padding:12px 8px}}.stat span{{font-size:11px}}.map{{padding:0}}}}@media print{{button,.filters{{display:none}}body{{background:white}}main{{max-width:none;padding:0}}.card,.summary{{break-inside:avoid}}.grid{{display:block}}.card{{margin:12px 0}}.map svg{{min-width:0}}}}
 </style></head><body><main><header><div class="brand">cubbie <span>watches.</span></div><button onclick="window.print()">Print / Save PDF</button></header><div class="eyebrow">{badge}</div><h1>{esc(plan['title'])}</h1><p class="meta">{esc(course['name'])} · {esc(course['term'])} · {esc(plan['mode'].title())} mode</p><p>{time_note}{checked['known_minutes']:.1f} minutes: {checked['watch_minutes']:.1f} watching at {plan.get('playback_speed',1):g}x + {checked['practice_minutes']:g} practice. Coverage describes resources, not mastery.</p><div class="stats">{count_cards}</div>{f'<aside class="notice"><ul>{warning}</ul></aside>' if warning else ''}<h2>Your learning map</h2><p class="meta">Follow the labeled connections. Select a concept to see its explanation and sources.</p><section class="map">{diagram}</section><h2>What to learn and where to watch</h2><div class="filters" aria-label="Filter course requirements"><button data-filter="all" aria-pressed="true">All</button>{''.join(f'<button data-filter="{s}" aria-pressed="false">{LABELS[s]}</button>' for s in LABELS)}</div><section class="grid">{''.join(cards)}</section><h2>Video notes</h2>{''.join(summaries) or '<p>No video summaries supplied.</p>'}<footer>Generated {esc(now())}. Course evidence and captions determine the scope. Semantic matches are teaching judgments and should be checked against the cited sources.</footer></main><script>document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{{document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.querySelectorAll('.card').forEach(c=>c.hidden=b.dataset.filter!=='all'&&c.dataset.status!==b.dataset.filter)}}));document.querySelectorAll('.map a').forEach(a=>a.addEventListener('click',()=>{{document.querySelector('[data-filter="all"]').click()}}));</script></body></html>'''
 
 
@@ -150,7 +176,7 @@ def render_pdf(plan, checked, path, font_path=None):
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, KeepTogether, Flowable
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, KeepTogether, Flowable, Image
     font_dir = Path(reportlab.__file__).parent / "fonts"
     if font_path:
         pdfmetrics.registerFont(TTFont("CW", str(font_path)))
@@ -172,7 +198,7 @@ def render_pdf(plan, checked, path, font_path=None):
             for child in value:
                 yield from all_strings(child)
 
-    missing = sorted({char for value in all_strings(plan) for char in value if ord(char) > 127 and ord(char) not in face.charToGlyph})
+    missing = sorted({char for value in all_strings([plan, checked.get("frames", {})]) for char in value if ord(char) > 127 and ord(char) not in face.charToGlyph})
     if missing:
         shown = " ".join(f"U+{ord(char):04X}" for char in missing[:8])
         raise InputError(f"Selected PDF font cannot display {shown}. Use --font with an installed Unicode TrueType font, or render the HTML through Cubbie's browser.")
@@ -280,6 +306,15 @@ def render_pdf(plan, checked, path, font_path=None):
             video = checked["videos"][clip["video_id"]]
             label = "Watch: " + clip_label(clip, video)
             section.append(p(label, "small") if plan.get("sample") else link(label, video_url(clip["video_id"], clip["start"])))
+            for row in frames_for(clip, checked):
+                image = frame_image(row)
+                if image:
+                    picture = Image(str(image))
+                    picture.drawHeight = 220 * picture.imageHeight / picture.imageWidth
+                    picture.drawWidth = 220
+                    picture.hAlign = "LEFT"
+                    section.append(picture)
+                section.append(link(frame_text(row), video_url(clip["video_id"], row["at"])))
         for url in req.get("candidate_urls", []):
             section.append(link("Unverified candidate: " + url, url))
         for edge in plan.get("edges", []):

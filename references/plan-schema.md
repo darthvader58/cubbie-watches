@@ -44,6 +44,8 @@ Use `mode`: `exam`, `lecture` or `skill`. Source `kind` is `canvas` or `provided
 | `unverified` | No verified clips | Required `gap`; `candidate_urls` remain unverified |
 | `missing` | No clips | Required `gap`; no suitable inspected segment was found |
 
+A clip may add `"frames": [193, 241]`: seconds of frames recorded with `watch.py frame`. Each must lie inside the clip. The map shows each frame's picture and on-screen description beside the clip link.
+
 Segment IDs in `evidence_segments` come from `watch.py read`. The validator checks that each evidence segment starts inside its clip, clip times fit the known video duration and Canvas references exist. This does not prove semantic relevance; Cubbie must read and assess the evidence.
 
 An edge is `{ "from": "requirement-id", "to": "requirement-id", "label": "why they connect" }`. Prefer labels such as “needed before,” “explains why,” “use when” and “contrasts with.”

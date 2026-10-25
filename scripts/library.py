@@ -222,6 +222,43 @@ def transcript_record(metadata, raw, source, language="unknown", generated=None)
             "warnings": warnings, "transcript_hash": hashlib.sha256(json.dumps(segments, sort_keys=True).encode()).hexdigest()}
 
 
+VISUAL_CUE = re.compile(r"\b(as you can see|you can see|look at|this (graph|plot|picture|diagram|figure|slide|curve|equation|matrix|table)|"
+                        r"draw|sketch|plot|diagram|figure|slide|on the board|write (this|it|down)|here we have|over here|"
+                        r"phase (line|portrait)|axis|axes|arrow|example)\b", re.I)
+
+
+def suggest_frames(record, start=0.0, end=None, limit=6, spacing=45.0):
+    """Pick moments worth looking at: spoken visual cues first, then evenly spaced fill. Never past the end."""
+    duration = record.get("duration")
+    end = min(x for x in (end, duration) if x is not None) if end is not None or duration is not None else None
+    picks = []
+
+    def add(at, reason):
+        if at < start or end is not None and at >= end:
+            return
+        if all(abs(at - p["at"]) >= 15 for p in picks):
+            picks.append({"at": round(at, 1), "reason": reason})
+
+    add(start, "clip start")
+    for segment in record.get("segments", []):
+        cue = VISUAL_CUE.search(segment["text"])
+        if cue:
+            # The picture usually settles a few seconds after it is mentioned.
+            add(segment["start"] + 3, f"caption {segment['id']}: \"{cue[0]}\"")
+    if end is not None:
+        at = start + spacing
+        while at < end:
+            add(at, "regular spacing")
+            at += spacing
+    cues = [p for p in picks if p["reason"].startswith("caption")]
+    others = [p for p in picks if not p["reason"].startswith("caption")]
+    return sorted((others[:1] + cues + others[1:])[:limit], key=lambda p: p["at"])
+
+
+def visual_path(workspace):
+    return Path(workspace).expanduser() / "visual.json"
+
+
 def unique(rows, label):
     if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
         raise InputError(f"{label} must be an array of objects")
@@ -278,6 +315,8 @@ def validate_plan(plan, workspace):
         elif source["kind"] == "canvas":
             raise InputError("Canvas sources require their actual HTTPS URL")
     videos, warnings, all_clips = {}, [], []
+    visual = read_json(visual_path(workspace)).get("videos", {}) if visual_path(workspace).exists() else {}
+    cited_frames = {}
 
     def get_video(vid):
         vid = video_id(vid)
@@ -336,6 +375,16 @@ def validate_plan(plan, workspace):
                 segment = record["segments"][sid]
                 if segment["start"] < start or end is not None and segment["start"] >= end:
                     raise InputError("Evidence segment starts outside its clip")
+            frames = clip.get("frames", [])
+            if not isinstance(frames, list):
+                raise InputError("Clip frames must be an array of observed seconds")
+            observed = {row["at"]: row for row in visual.get(record["id"], [])}
+            for at in frames:
+                if at not in observed:
+                    raise InputError(f"Frame {at}s of {record['id']} was not observed; record it with the frame command")
+                if at < start or end is not None and at >= end:
+                    raise InputError("Observed frame lies outside its clip")
+                cited_frames.setdefault(record["id"], {})[at] = observed[at]
             all_clips.append(clip)
         if plan["mode"] == "exam" and req["basis"] != "explicit":
             warnings.append(f"{req['id']}: exam objective is {req['basis']}, not confirmed instructor scope")
@@ -390,6 +439,7 @@ def validate_plan(plan, workspace):
         warnings.append("Some clip end times are unknown; total time is a lower bound")
     if not plan.get("exam_scope_confirmed") and plan["mode"] == "exam":
         warnings.append("Exam scope is not confirmed; this is a provisional course study map")
-    return {"videos": videos, "warnings": list(dict.fromkeys(warnings)), "known_minutes": total,
+    return {"videos": videos, "frames": {vid: rows for vid, rows in cited_frames.items()},
+            "warnings": list(dict.fromkeys(warnings)), "known_minutes": total,
             "unknown_duration": unknown, "watch_minutes": seconds / speed / 60, "practice_minutes": practice,
             "statuses": {s: sum(r["status"] == s for r in requirements.values()) for s in ("matched", "partial", "unverified", "missing")}}

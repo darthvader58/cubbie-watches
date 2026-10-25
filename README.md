@@ -20,7 +20,7 @@ The student can switch goals while keeping the same course evidence and video re
 
 1. **Read the course context.** Cubbie uses its connected Canvas account to find the relevant syllabus, lecture, exam guidance, assignment, rubric, or project instructions.
 2. **Search for relevant videos.** It searches YouTube using the course concepts, expected depth, methods, notation, and software requirements.
-3. **Inspect the content.** The skill retrieves or reads available captions, reviews the relevant segments, and records timestamped evidence. It can enumerate all accessible entries in a selected playlist.
+3. **Inspect the content.** The skill reads available captions, watches the key moments on screen (equations, diagrams, board work), and records timestamped evidence from both. It can enumerate all accessible entries in a selected playlist.
 4. **Map course requirements to videos.** Each requirement is marked as matched, partial, unverified, or not found, with uncovered material kept visible.
 5. **Build a learning route.** Cubbie creates a source-linked map, a realistic viewing plan, and small practice prompts.
 6. **Check understanding.** A short follow-up question helps identify whether the explanation worked or what needs another pass.
@@ -51,6 +51,8 @@ After installation, try one of these prompts and name a course you can access:
 
 - **Canvas:** the skill starts Cubbie's own Canvas connection when it is missing. If that can't finish (for example, it needs a browser extension you can't install), Cubbie opens your school's Canvas in its own browser. You sign in once yourself, including SSO and two-factor approval, and Cubbie then reads course pages read-only. The login is saved for next time. Typing out course material is only the last resort, and it's labeled as supplied.
 - **YouTube:** playlists and search results are cataloged by script. YouTube often blocks caption downloads from cloud servers, so Cubbie opens each selected video in its browser, reads the "Show transcript" panel, and imports it. Each timestamp still comes from the real transcript.
+
+- **Watching, not just reading:** at the key moments of each candidate clip, chosen from spoken cues like "as you can see" or "let me draw", Cubbie pauses the video in its browser and looks at the frame: board work, slides, equations, graphs. What it sees goes into the match decision and appears in the map as a picture with a timestamped link.
 
 No paid browser service, API key or MCP server is involved; everything runs on Cubbie's built-in abilities.
 

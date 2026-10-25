@@ -7,8 +7,9 @@ import json
 import sys
 from pathlib import Path
 
-from library import (InputError, now, number, parse_captions, playlist_url, read_json,
-                     record_path, string, transcript_record, validate_plan, video_id, video_url, write_json)
+from library import (InputError, now, number, parse_captions, playlist_url, read_json, record_path, string,
+                     suggest_frames, timestamp, transcript_record, validate_plan, video_id, video_url, visual_path,
+                     write_json)
 
 
 def emit(data):
@@ -268,6 +269,51 @@ def note(args):
     return 0
 
 
+def frames(args):
+    vid = video_id(args.video)
+    path = record_path(args.workspace, vid)
+    record = read_json(path) if path.exists() else {"id": vid}
+    if record.get("status") != "ready" and args.end is None and record.get("duration") is None:
+        raise InputError("Without a transcript, give --end so moments can be spaced through the clip")
+    picks = suggest_frames(record, args.start, args.end, args.max)
+    for pick in picks:
+        pick["time"] = timestamp(pick["at"])
+        pick["url"] = video_url(vid, pick["at"])
+    emit({"video_id": vid, "frames": picks,
+          "next": "Open each url in Cubbie's browser, pause on the frame, look at it, then record it with the frame command."})
+    return 0
+
+
+def frame(args):
+    vid = video_id(args.video)
+    at = number(args.at, "frame time")
+    path = record_path(args.workspace, vid)
+    duration = args.duration or (read_json(path).get("duration") if path.exists() else None)
+    if duration is not None and at >= duration:
+        raise InputError("Frame time is beyond the video duration")
+    row = {"at": at, "seen": string(args.seen, "what is on screen"), "legibility": args.legibility,
+           "notation": [string(n, "notation") for n in args.notation], "observed_at": now()}
+    if args.image:
+        source = Path(args.image).expanduser()
+        if not source.is_file():
+            raise InputError("Frame image not found")
+        target = Path(args.workspace).expanduser() / "frames" / f"{vid}-{int(at)}.jpg"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # A study map needs a readable picture, not the full screenshot; keep the PDF small enough to text.
+        from PIL import Image
+        with Image.open(source) as picture:
+            picture = picture.convert("RGB")
+            picture.thumbnail((960, 960))
+            picture.save(target, "JPEG", quality=80, optimize=True)
+        row["image"] = str(target)
+    store = read_json(visual_path(args.workspace)) if visual_path(args.workspace).exists() else {"schema_version": 1, "videos": {}}
+    rows = [r for r in store["videos"].get(vid, []) if r["at"] != at] + [row]
+    store["videos"][vid] = sorted(rows, key=lambda r: r["at"])
+    write_json(visual_path(args.workspace), store)
+    emit({"video_id": vid, "at": at, "time": timestamp(at), "frames_recorded": len(rows), "image": row.get("image")})
+    return 0
+
+
 def status(args):
     catalog_data = read_json(args.catalog)
     counts, rows = {}, []
@@ -302,7 +348,7 @@ def status(args):
 def build(args):
     plan = read_json(args.plan)
     checked = validate_plan(plan, args.workspace)
-    report = {k: v for k, v in checked.items() if k != "videos"}
+    report = {k: v for k, v in checked.items() if k not in ("videos", "frames")}
     report["validated_at"] = now()
     report["validation_scope"] = "Structure, references, stored caption evidence and timing; semantic relevance still requires source review."
     if args.command == "validate":
@@ -392,6 +438,25 @@ def main(argv=None):
     p.add_argument("--limitation", action="append", default=[])
     p.add_argument("--replace", action="store_true")
     p.set_defaults(func=note)
+    p = sub.add_parser("frames", help="Suggest moments to look at in a clip, from spoken visual cues and even spacing")
+    p.add_argument("--video", required=True)
+    p.add_argument("--workspace", required=True)
+    p.add_argument("--start", type=float, default=0.0)
+    p.add_argument("--end", type=float)
+    p.add_argument("--max", type=positive_int, default=6)
+    p.set_defaults(func=frames)
+
+    p = sub.add_parser("frame", help="Record what is visibly on screen at one moment of a video")
+    p.add_argument("--video", required=True)
+    p.add_argument("--workspace", required=True)
+    p.add_argument("--at", type=float, required=True, help="Seconds into the video where the frame was observed")
+    p.add_argument("--seen", required=True, help="What is on screen: slide or board text, diagrams, axes, worked steps")
+    p.add_argument("--notation", action="append", default=[], help="An equation or symbol exactly as written on screen")
+    p.add_argument("--legibility", choices=("clear", "partial", "unreadable"), required=True)
+    p.add_argument("--image", help="Private screenshot of the frame, kept in the workspace")
+    p.add_argument("--duration", type=float)
+    p.set_defaults(func=frame)
+
     p = sub.add_parser("status")
     p.add_argument("--catalog", required=True)
     p.add_argument("--workspace", required=True)

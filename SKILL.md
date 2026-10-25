@@ -121,6 +121,29 @@ Summarize one video at a time. After each reviewed page, checkpoint its teaching
 
 Append notes as later pages are reviewed. Use `--replace` only after re-reviewing a changed transcript. A stored transcript hash makes stale notes fail instead of attaching to new captions.
 
+### Watch the key moments
+
+Captions hold what the instructor says; much of the teaching is what they show: board work, slides, equations, graphs, diagrams and worked steps. Before matching a clip, look at it. Get suggested moments for each candidate clip:
+
+```bash
+~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py frames --video "<YouTube ID>" --workspace "<private-course-dir>/workspace" --start 145 --end 300
+```
+
+It returns up to six moments with watch links: where the speaker says "as you can see", "draw", "this graph" and similar, plus evenly spaced fill. Add moments of your own where the captions describe something visual. For each moment, in Cubbie's browser:
+
+1. Open its link (`&t=<seconds>`). Skip or wait out any ad, then choose the highest quality offered.
+2. Pause at the moment, move the pointer off the video so the controls hide, and take a screenshot of just the video player.
+3. Look at the screenshot. Note the slide or board title, every equation and symbol exactly as written, axes and labels, the kind of diagram, and which step of a worked example is shown. If the picture is mid-transition, step a few seconds forward and look again.
+4. Record it, with the screenshot saved privately:
+
+```bash
+~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py frame --video "<YouTube ID>" --workspace "<private-course-dir>/workspace" --at 193 --legibility clear --seen "Board: 'Impossibility of oscillations (2.6)'; two x-t sketches of oscillation marked NO" --notation "x' = f(x)" --image "<screenshot path>"
+```
+
+Use what you see in the match decision. A clip matches only when its screen and speech together teach the objective. Compare its notation, method and level against the course material and explain any differences. A frame never proves more than it shows; write only what is visible. When captions are missing, observed frames can make a video a useful candidate, but it stays unverified without caption evidence. Cite observed frames on a clip with `"frames": [193]`. The map then shows each frame's picture and description beside its timestamped link, so the student can see what to look for before pressing play.
+
+Screenshots stay in the student's private workspace and appear only in their own study map, with the video's title and channel. Never publish them or reuse them elsewhere.
+
 ## 4. Match evidence to requirements
 
 For each course objective, record the chosen clip, why it fits, and what it leaves out. Use these statuses:
