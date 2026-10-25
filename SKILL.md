@@ -9,9 +9,17 @@ Help the student learn what their university course actually requires. Start wit
 
 ## Setup and connections
 
-Use Cubbie's connected Canvas ability to read course information and materials. Use its web/browser abilities to find and inspect YouTube videos and captions; use the bundled scripts to catalog playlists, retrieve accessible transcripts, checkpoint evidence, validate references and render artifacts.
+Everything here uses Cubbie's own free abilities: Canvas, web, browser, documents and the code sandbox. The skill needs no API key, paid browser service or MCP server. Scripts cannot call Cubbie's abilities and have no Canvas token, so Cubbie reads Canvas and YouTube first and passes what it read to the scripts as files. Search YouTube with generic concepts, not private assignments, student identifiers or protected course files.
 
-Do not set up a Canvas MCP server. Cubbie supplies Canvas as an account connection and its skill runner cannot run MCP servers or call Cubbie's abilities from a script. Fetch Canvas content in Cubbie first. Scripts accept only the source records Cubbie supplies; they have no Canvas token. Search with generic concepts, not private assignments, student identifiers or protected course files.
+### Canvas: connect before course work
+
+Canvas is the course authority, so get it working before searching YouTube. Use the first option that works, and remember which one this student uses:
+
+1. **Cubbie's Canvas connection.** Read the student's Canvas courses with Cubbie's connected Canvas ability. If Canvas is not connected, start Cubbie's own Canvas connection for the student now: send its connection link or step, and confirm the school or its Canvas sign-in address. Then wait for the student to finish. Do not ask them to type out course material while the connection is pending.
+2. **Canvas in Cubbie's browser.** If the connection cannot be completed (for example, it needs a browser extension the student cannot install), open the school's Canvas sign-in page in Cubbie's browser, such as `https://canvas.asu.edu`. Hand the browser to the student to sign in, including single sign-on and two-factor approval. Never ask for a password or code in the chat. The login stays saved for later conversations. Then read only, in that browser: course pages, modules, files, announcements and the syllabus. Canvas also shows read-only JSON at addresses such as `/api/v1/courses?enrollment_state=active`, `/api/v1/courses/<id>/modules?include[]=items`, `/api/v1/courses/<id>/assignments`, `/api/v1/courses/<id>/files`, `/api/v1/courses/<id>/pages`, `/api/v1/announcements?context_codes[]=course_<id>` and `/api/v1/courses/<id>?include[]=syllabus_body`. Open them in the signed-in browser to list course structure quickly. Only open pages; never submit, post or change anything.
+3. **Supplied material.** Only if both fail, ask for the syllabus, slides, review guide or project brief as files or photos. Label them as supplied, not a live Canvas read.
+
+Lecture notes and review guides are often PDFs inside modules, discussions or files. Open and read the PDF; an exam's scope is frequently a section of it, such as "Mid-Term Review".
 
 Install the pinned dependencies once in the student's private environment:
 
@@ -24,7 +32,7 @@ Run commands as `~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py
 
 The PDF renderer checks whether its font can display the course's notation. If a character is missing, use an installed Unicode TrueType font with `build --font <font-path>`; if none is available, build `--html-only` and use Cubbie's browser to save the standalone HTML as a PDF. Keep symbols and terminology faithful to the course.
 
-If Canvas is disconnected, ask the student to connect it in Cubbie or supply the relevant syllabus, slides, review guide or project brief. Label supplied material accurately; do not claim a live Canvas read.
+Label the Canvas source accurately in every plan: connected Canvas, Canvas read in Cubbie's browser, or student-supplied. Never claim a live Canvas read you did not make.
 
 ## 1. Identify the course and goal
 
@@ -84,9 +92,16 @@ Retrieve captions for every video in the selected playlist or search set when th
 ~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py status --catalog "<private-course-dir>/catalog.json" --workspace "<private-course-dir>/workspace"
 ```
 
-Caption endpoints may block cloud servers. For `needs_browser`, read captions through Cubbie's browser. If captions are unavailable, use an instructor-provided or student-supplied transcript. Never defeat bot protection, use a proxy workaround or download the video as a caption workaround. Preserve attribution and language; never publish or attach full third-party transcripts. Metadata alone leaves a video unverified.
+YouTube usually blocks caption requests from Cubbie's servers, so expect `needs_browser`. That is normal, not a dead end: read the captions in Cubbie's browser, which is how a student would see them.
 
-Import browser, instructor or student captions as timed JSON segments (`[{"start": 1.0, "duration": 2.0, "text": "..."}]`), SRT, VTT or `[00:01 - 00:04] caption text`:
+1. Open the video's watch page (`https://www.youtube.com/watch?v=<ID>`) in Cubbie's browser. Dismiss any cookie or sign-in prompt; no YouTube account is needed.
+2. Expand the description ("...more") and choose "Show transcript". If the panel lists languages, choose the course's language.
+3. Copy the panel's full text, scrolling until the last timestamp is included. Save it unchanged to a private file such as `<private-course-dir>/captions/<ID>.txt`.
+4. Import it with `--source browser_captions`, passing the duration shown on the page. The importer reads the panel's `0:00` lines directly. Each segment ends where the next begins, and the last end stays unknown.
+
+Do this for every video selected for the map and its main candidates, one at a time, checkpointing after each. For a large playlist, catalog every entry, then read transcripts for the lessons that match an objective by title, description or chapter list; leave the rest cataloged but unverified, and say how many were inspected. If a video has no transcript, use an instructor-provided or student-supplied transcript. Never defeat bot protection, use a proxy or download the video as a workaround. Preserve attribution and language; never publish or attach full third-party transcripts. Metadata alone leaves a video unverified.
+
+Import browser, instructor or student captions as timed JSON segments (`[{"start": 1.0, "duration": 2.0, "text": "..."}]`), SRT, VTT, `[00:01 - 00:04] caption text` or YouTube transcript panel text:
 
 ```bash
 ~/.local/share/venvs/cubbie-watches/bin/python scripts/watch.py import --video "<YouTube ID>" --input "<private-caption-file>" --workspace "<private-course-dir>/workspace" --source browser_captions --duration 447 --language en
@@ -169,11 +184,11 @@ Keep ordinary replies short, plain text and focused on one action. Links belong 
 
 Use one actionable failure message:
 
-- Canvas unavailable: ask the student to connect it or send the relevant course material.
+- Canvas unavailable: start Cubbie's Canvas connection; if that cannot finish, offer to open Canvas in Cubbie's browser for the student to sign in. Ask for course files only as the last option.
 - Course ambiguous: ask which course or section.
 - Exam scope absent: ask for the review guide or instructor's topic list; label interim suggestions provisional.
 - Locked or missing file: identify the unavailable source and request an accessible copy or substitute.
-- Captions unavailable: offer another source or ask for a transcript; retain the unverified label.
+- Captions blocked: read the transcript panel in Cubbie's browser. If the video has no transcript, offer another source or ask for one; keep the unverified label.
 - No suitable video: report the uncovered objective and offer a clearly identified non-video course/reference explanation.
 - Time budget too small: name the achievable subgoal and the remaining work.
 

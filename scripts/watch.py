@@ -184,7 +184,7 @@ def fetch(args):
                 raise
             failed += 1
             item = {**meta, "status": failure_status(exc), "error_type": type(exc).__name__, "attempted_at": now(),
-                    "next_action": "Use Cubbie's browser to read available captions, import supplied captions, or choose another source."}
+                    "next_action": "Open the watch page in Cubbie's browser, choose Show transcript, save the panel text and run import --source browser_captions."}
             # A failed refresh must not destroy a previously usable transcript.
             if path.exists() and read_json(path).get("status") == "ready":
                 old = read_json(path)

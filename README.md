@@ -47,7 +47,12 @@ After installation, try one of these prompts and name a course you can access:
 
 > Read the project instructions for [course] in Canvas. Find a YouTube course or playlist that teaches the required skills, then give me a small first practice task.
 
-Connect Canvas in Cubbie before asking for course-grounded recommendations. If Canvas is not connected, the skill can work from materials you provide, but it will label those sources accurately rather than claiming to have read Canvas.
+### Connecting Canvas and YouTube (free, no keys)
+
+- **Canvas:** the skill starts Cubbie's own Canvas connection when it is missing. If that can't finish (for example, it needs a browser extension you can't install), Cubbie opens your school's Canvas in its own browser. You sign in once yourself, including SSO and two-factor approval, and Cubbie then reads course pages read-only. The login is saved for next time. Typing out course material is only the last resort, and it's labeled as supplied.
+- **YouTube:** playlists and search results are cataloged by script. YouTube often blocks caption downloads from cloud servers, so Cubbie opens each selected video in its browser, reads the "Show transcript" panel, and imports it. Each timestamp still comes from the real transcript.
+
+No paid browser service, API key or MCP server is involved; everything runs on Cubbie's built-in abilities.
 
 ## Run the bundled tools locally
 

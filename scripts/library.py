@@ -146,8 +146,35 @@ def parse_captions(path):
     if current and current["text"].strip():
         result.append(current)
     if not result:
-        raise InputError("No timed captions found; use JSON, SRT, VTT or [start - end] lines")
+        result = parse_transcript_panel(text)
+    if not result:
+        raise InputError("No timed captions found; use JSON, SRT, VTT, [start - end] lines or YouTube transcript panel text")
     return result
+
+
+def parse_transcript_panel(text):
+    """Parse text copied from YouTube's "Show transcript" panel.
+
+    The panel gives only start times, as a "0:00" line (or "0:00 text") before each caption. A segment ends where
+    the next one starts; the last segment's end stays unknown. Spoken-time labels such as "2 seconds" are dropped.
+    """
+    stamp = re.compile(r"^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*(.*)$")
+    spoken = re.compile(r"^\s*\d+\s+(hours?|minutes?|seconds?)(,?\s+\d+\s+(hours?|minutes?|seconds?))*\s*$", re.I)
+    rows, current = [], None
+    for line in text.splitlines():
+        match = stamp.match(line)
+        if match:
+            if current and current["text"].strip():
+                rows.append(current)
+            current = {"start": parse_time(match[1]), "text": match[2].strip()}
+        elif current is not None and line.strip() and not spoken.match(line):
+            current["text"] = (current["text"] + " " + line.strip()).strip()
+    if current and current["text"].strip():
+        rows.append(current)
+    for row, following in zip(rows, rows[1:]):
+        if following["start"] > row["start"]:
+            row["end"] = following["start"]
+    return rows
 
 
 def normalize_segments(raw, duration=None):
