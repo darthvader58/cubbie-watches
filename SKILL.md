@@ -213,7 +213,16 @@ If nothing could be verified, still send the best candidate video and playlist l
 
 Then deliver the full explanatory map and source-to-requirement table as a readable PDF. An HTML companion with clickable source links is optional. Inspect the generated file for readable labels and working links before sending it.
 
-Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". Say plainly that the file did not come through and send the map as text: each concept, its course source and its links. Then offer one other route right away, without waiting to be asked, such as emailing it to the student's own connected address. Report only what the email or upload tool actually confirms. After building the PDF, always attempt delivery; a built file that was never sent is not delivered. If no route works, say so; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
+The PDF goes to the student in this chat, as a file attachment in the conversation. Do not email it, upload it to Drive or send it anywhere else instead, unless the student asks for that route themselves. After building, always send the built `learning-map.pdf` from the report folder as an attachment; a built file that was never sent is not delivered. Send the file `build` made, not a new one.
+
+Say a file was sent only after the send succeeds and the attachment appears in the conversation. Text messages over RCS or SMS can drop attachments silently, especially large ones. If the attachment does not appear, or the student says they cannot see or open it, do not repeat "here's the PDF". In order:
+
+1. Say plainly that the file did not come through, and send the map as text in the meantime: each concept, its course source and its links.
+2. Send it again in the chat, smaller: rebuild with fewer frame pictures (cite only the most useful frame per clip), check the PDF is well under 1 MB, and attach that file.
+3. If it still does not appear, send a download link to the same PDF in the chat, on its own line, using a file link from Cubbie's own file or document sharing that opens without the student signing in to anything new. Open the link yourself first to check it loads the PDF.
+4. If neither works, tell the student the chat could not carry the file and ask which other route they want. Email is an option only if they choose it.
+
+Report only what the send actually confirms; never describe a file as delivered because you intended to send it. Do not assume a server started in the sandbox is publicly reachable.
 
 Always make the map with this skill's own `validate` and `build` commands; never write a PDF or map another way. The commands are what check the evidence, so a hand-made map skips every safeguard. If `validate` fails, fix the plan it names, or mark the affected requirement Unverified or No match found. Even a map where everything is Unverified goes through `build`. Validate references, transcript evidence, segment bounds and viewing-time estimates, then render the PDF, standalone HTML and SVG map:
 
