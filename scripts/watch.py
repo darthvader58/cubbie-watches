@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 
 from library import (InputError, now, number, parse_captions, playlist_url, read_json, record_path, string,
-                     suggest_frames, timestamp, transcript_record, validate_plan, video_id, video_url, visual_path,
-                     write_json)
+                     storyboard_tile, suggest_frames, timestamp, transcript_record, validate_plan, video_id, video_url,
+                     visual_path, write_json)
 
 
 def emit(data):
@@ -286,6 +286,49 @@ def frames(args):
     return 0
 
 
+def preview(args):
+    """Save YouTube's own scrub-bar preview tiles when the player itself cannot be opened."""
+    import io
+    import urllib.request
+    from PIL import Image
+    from yt_dlp import YoutubeDL
+    vid = video_id(args.video)
+    log = Log()
+    options = {"skip_download": True, "quiet": True, "no_warnings": True, "socket_timeout": 15,
+               "retries": 1, "extractor_retries": 1, "logger": log, "cachedir": False}
+    try:
+        with YoutubeDL(options) as client:
+            info = client.extract_info(video_url(vid), download=False)
+    except Exception as exc:
+        emit({"error": "source_blocked", "detail": str(exc)[:500],
+              "next": "Ask the student for a screenshot of that moment, or leave the frame unobserved."})
+        return 4
+    boards = [f for f in info.get("formats", []) if str(f.get("format_id", "")).startswith("sb") and f.get("fragments")]
+    if not boards:
+        emit({"error": "source_blocked", "detail": "No preview storyboard offered for this video",
+              "next": "Ask the student for a screenshot of that moment, or leave the frame unobserved."})
+        return 4
+    board = max(boards, key=lambda f: f.get("width") or 0)
+    folder = Path(args.workspace).expanduser() / "frames"
+    folder.mkdir(parents=True, exist_ok=True)
+    sheets, saved = {}, []
+    for at in args.at:
+        tile = storyboard_tile(board, number(at, "preview time"))
+        if tile["fragment"] not in sheets:
+            with urllib.request.urlopen(board["fragments"][tile["fragment"]]["url"], timeout=20) as response:
+                sheets[tile["fragment"]] = Image.open(io.BytesIO(response.read())).convert("RGB")
+        picture = sheets[tile["fragment"]].crop(tile["box"])
+        # Enlarged so it can be looked at; enlarging adds no detail, so it is labelled a preview.
+        picture = picture.resize((picture.width * 4, picture.height * 4), Image.LANCZOS)
+        target = folder / f"{vid}-{int(tile['shown_at'])}-preview.jpg"
+        picture.save(target, "JPEG", quality=85)
+        saved.append({"requested": at, "at": tile["shown_at"], "time": timestamp(tile["shown_at"]), "image": str(target)})
+    emit({"video_id": vid, "resolution": f"{board['width']}x{board['height']}", "previews": saved,
+          "next": "Look at each image. Text is usually too small to read; record only what is visible with "
+                  "frame --source preview --at <at> --image <image>, usually with --legibility partial or unreadable."})
+    return 0
+
+
 def frame(args):
     vid = video_id(args.video)
     at = number(args.at, "frame time")
@@ -294,7 +337,7 @@ def frame(args):
     if duration is not None and at >= duration:
         raise InputError("Frame time is beyond the video duration")
     row = {"at": at, "seen": string(args.seen, "what is on screen"), "legibility": args.legibility,
-           "notation": [string(n, "notation") for n in args.notation], "observed_at": now()}
+           "notation": [string(n, "notation") for n in args.notation], "source": args.source, "observed_at": now()}
     if args.image:
         source = Path(args.image).expanduser()
         if not source.is_file():
@@ -456,8 +499,16 @@ def main(argv=None):
     p.add_argument("--notation", action="append", default=[], help="An equation or symbol exactly as written on screen")
     p.add_argument("--legibility", choices=("clear", "partial", "unreadable"), required=True)
     p.add_argument("--image", help="Private screenshot of the frame, kept in the workspace")
+    p.add_argument("--source", choices=("player", "preview"), default="player",
+                   help="player: a screenshot of the paused video; preview: a low-resolution storyboard tile")
     p.add_argument("--duration", type=float)
     p.set_defaults(func=frame)
+
+    p = sub.add_parser("preview", help="Save YouTube's low-resolution scrub-bar previews when the player cannot be opened")
+    p.add_argument("--video", required=True)
+    p.add_argument("--workspace", required=True)
+    p.add_argument("--at", type=float, action="append", required=True, help="Seconds to preview; repeat for several")
+    p.set_defaults(func=preview)
 
     p = sub.add_parser("status")
     p.add_argument("--catalog", required=True)

@@ -103,7 +103,8 @@ def frames_for(clip, checked):
 def frame_text(row):
     notation = "; ".join(row.get("notation", []))
     return f"On screen at {timestamp(row['at'])}: {row['seen']}" + (f" [{notation}]" if notation else "") + \
-        ("" if row.get("legibility") == "clear" else f" ({row.get('legibility')} legibility)")
+        ("" if row.get("legibility") == "clear" else f" ({row.get('legibility')} legibility)") + \
+        (" (low-resolution preview, not the full video frame)" if row.get("source") == "preview" else "")
 
 
 def frame_image(row):

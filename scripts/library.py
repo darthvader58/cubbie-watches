@@ -255,6 +255,25 @@ def suggest_frames(record, start=0.0, end=None, limit=6, spacing=45.0):
     return sorted((others[:1] + cues + others[1:])[:limit], key=lambda p: p["at"])
 
 
+def storyboard_tile(board, at):
+    """Locate the preview tile covering second `at` in a YouTube storyboard format from yt-dlp.
+
+    Returns the fragment index, the tile's pixel box and the second the tile actually shows."""
+    rows, columns, fps = board.get("rows"), board.get("columns"), board.get("fps")
+    fragments = board.get("fragments") or []
+    if not (rows and columns and fps and fragments):
+        raise InputError("This video has no usable preview storyboard")
+    every = 1 / fps
+    index = int(at // every)
+    per_sheet = rows * columns
+    sheet = min(index // per_sheet, len(fragments) - 1)
+    index = min(index, sheet * per_sheet + per_sheet - 1)
+    row, column = divmod(index - sheet * per_sheet, columns)
+    width, height = board["width"], board["height"]
+    return {"fragment": sheet, "box": (column * width, row * height, column * width + width, row * height + height),
+            "shown_at": round(index * every, 1)}
+
+
 def visual_path(workspace):
     return Path(workspace).expanduser() / "visual.json"
 
